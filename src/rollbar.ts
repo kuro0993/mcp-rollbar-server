@@ -14,6 +14,9 @@ import {
   ProjectResponse,
   RollbarProject,
   UserResponse,
+  RollbarResponse,
+  RollbarItem,
+  RollbarOccurrence,
 } from "./types.js";
 
 // Check for project access token and account access token
@@ -41,6 +44,7 @@ const SUPPORTED_APIS = {
     "rollbar_list_environments",
     "rollbar_list_deploys",
     "rollbar_get_deploy",
+    "rollbar_get_item_details",
   ],
   // APIs that use Account Token
   accountApis: ["rollbar_list_projects", "rollbar_get_project", "rollbar_list_users", "rollbar_get_user"],
@@ -282,6 +286,18 @@ const GET_DEPLOY_TOOL: Tool = {
   },
 };
 
+const GET_ITEM_DETAILS_TOOL: Tool = {
+  name: "rollbar_get_item_details",
+  description: "Get item details for a Rollbar item by counter number",
+  inputSchema: {
+    type: "object",
+    properties: {
+      counter: { type: "number", description: "Rollbar item counter" },
+    },
+    required: ["counter"],
+  },
+};
+
 export const createServer = () => {
   const server = new Server(
     {
@@ -310,6 +326,7 @@ export const createServer = () => {
       GET_USER_TOOL,
       LIST_DEPLOYS_TOOL,
       GET_DEPLOY_TOOL,
+      GET_ITEM_DETAILS_TOOL,
     ],
   }));
 
@@ -620,6 +637,40 @@ export const createServer = () => {
               {
                 type: "text",
                 text: JSON.stringify(response.data, null, 2),
+              },
+            ],
+          };
+        }
+
+        case "rollbar_get_item_details": {
+          // Project Token is required
+          if (!projectClient) {
+            throw new Error("ROLLBAR_PROJECT_TOKEN is not set, cannot use this API");
+          }
+
+          const { counter } = args as { counter: number };
+
+          // Get item by counter
+          const itemResponse = await projectClient.get<RollbarResponse<RollbarItem>>(`/item_by_counter/${counter}`);
+
+          const last_occurrence_id = itemResponse.data.result.last_occurrence_id;
+
+          // Get last occurrence details
+          const occurrenceResponse = await projectClient.get<RollbarResponse<RollbarOccurrence>>(`/instance/${last_occurrence_id}`);
+
+          // Remove metadata field as it contains token
+          if (occurrenceResponse.data.result.data.metadata) {
+            delete occurrenceResponse.data.result.data.metadata;
+          }
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify({
+                  item: itemResponse.data.result,
+                  occurrence: occurrenceResponse.data.result,
+                }, null, 2),
               },
             ],
           };

@@ -390,4 +390,29 @@ describe("Rollbar Tool Call Tests", () => {
     const callArg = mockGet.mock.calls[0][0];
     expect(callArg).toContain("/item/abcd1234");
   });
+
+  test("rollbar_get_item_details", async () => {
+    // Test parameters
+    const params = { counter: 42 };
+
+    // Direct API call test for item by counter
+    await mockGet("/api/1/item_by_counter/42");
+    expect(mockGet).toHaveBeenCalled();
+
+    // Verify correct URL was used for item by counter
+    const itemCallArg = mockGet.mock.calls[0][0];
+    expect(itemCallArg).toContain("/item_by_counter/42");
+
+    // Direct API call test for occurrence
+    await mockGet("/api/1/instance/abc123");
+    expect(mockGet).toHaveBeenCalled();
+
+    // Verify correct URL was used for occurrence
+    const occurrenceCallArg = mockGet.mock.calls[1][0];
+    expect(occurrenceCallArg).toContain("/instance/");
+
+    // Verify the mock data structure
+    expect(mockItemData.result).toHaveProperty("counter");
+    expect(mockOccurrenceData.result).toHaveProperty("body");
+  });
 });

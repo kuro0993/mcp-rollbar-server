@@ -1,3 +1,8 @@
+export interface RollbarResponse<T> {
+  err: number;
+  result: T;
+}
+
 export interface RollbarUser {
   id: number;
   username: string;
@@ -26,7 +31,9 @@ export interface RollbarItem {
   timestamp: number;
   title: string;
   total_occurrences: number;
+  last_occurrence_id: number;
   last_occurrence_timestamp: number;
+  first_occurrence_id: number;
   first_occurrence_timestamp: number;
   status: string;
   assigned_user_id?: number;
@@ -34,42 +41,50 @@ export interface RollbarItem {
 
 export interface RollbarOccurrence {
   id: string;
-  timestamp: number;
+  project_id: number;
   item_id: number;
-  language: string;
-  level: string;
-  framework: string;
-  body: {
-    trace?: {
-      frames: Array<{
-        filename: string;
-        lineno: number;
-        colno?: number;
-        method: string;
-        code?: string;
-      }>;
-      exception: {
-        class: string;
-        message: string;
+  timestamp: number;
+  version: number;
+  data: {
+    timestamp: number;
+    environment: string;
+    level: string;
+    language: string;
+    framework: string;
+    uuid: string;
+    server: {
+      host: string;
+      root: string;
+      branch: string;
+    };
+    body: {
+      trace?: {
+        frames: Array<{
+          filename: string;
+          lineno: number;
+          colno?: number;
+          method: string;
+          code?: string;
+        }>;
+        exception: {
+          class: string;
+          message: string;
+        };
+      };
+      message?: {
+        body: string;
       };
     };
-    message?: {
-      body: string;
+    request?: {
+      url: string;
+      method: string;
+      headers: Record<string, string>;
+      params: Record<string, string>;
+      GET: Record<string, string>;
+      POST: Record<string, string>;
     };
-  };
-  request?: {
-    url: string;
-    method: string;
-    headers: Record<string, string>;
-    params: Record<string, string>;
-    GET: Record<string, string>;
-    POST: Record<string, string>;
-  };
-  person?: {
-    id: string;
-    username?: string;
-    email?: string;
-  };
+    metadata?: any;
+  }
 }
 
 export interface RollbarDeploy {
