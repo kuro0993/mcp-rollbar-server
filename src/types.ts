@@ -7,19 +7,24 @@ export interface RollbarUser {
   id: number;
   username: string;
   email: string;
-  access_level: number;
+  email_enabled: number;
 }
 
 export interface RollbarProject {
   id: number;
-  name: string;
-  status: string;
   account_id: number;
+  status: string;
+  settings_data: Record<string, unknown>;
+  date_created: number;
+  date_modified: number;
+  name: string;
 }
 
 export interface RollbarEnvironment {
   id: number;
-  name: string;
+  project_id: number;
+  environment: string;
+  visble: boolean;
 }
 
 export interface RollbarItem {
@@ -92,60 +97,28 @@ export interface RollbarDeploy {
   environment: string;
   revision: string;
   comment: string;
-  timestamp: number;
+  status: string;
   local_username: string;
   project_id: number;
+  user_id: number;
+  start_time: number;
+  finish_time: number;
 }
 
-export interface ListItemsResponse {
+export interface ListItems {
   items: RollbarItem[];
   page: number;
-  total: number;
+  total_count: number;
 }
 
-export interface ItemResponse {
-  item: RollbarItem;
-}
-
-export interface ListOccurrencesResponse {
-  occurrences: RollbarOccurrence[];
+export interface ListOccurrences {
+  instances: RollbarOccurrence[];
   page: number;
-  total: number;
 }
 
-export interface OccurrenceResponse {
-  occurrence: RollbarOccurrence;
-}
-
-export interface ListProjectsResponse {
-  err: number;
-  result: RollbarProject[];
-}
-
-export interface ProjectResponse {
-  project: RollbarProject;
-}
-
-export interface ListEnvironmentsResponse {
+export interface ListEnvironments {
   environments: RollbarEnvironment[];
-}
-
-export interface ListUsersResponse {
-  users: RollbarUser[];
-}
-
-export interface UserResponse {
-  user: RollbarUser;
-}
-
-export interface ListDeploysResponse {
-  deploys: RollbarDeploy[];
   page: number;
-  total: number;
-}
-
-export interface DeployResponse {
-  deploy: RollbarDeploy;
 }
 
 export interface RollbarToolRequest {

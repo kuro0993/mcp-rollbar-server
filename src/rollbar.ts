@@ -2,21 +2,15 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, Tool } from "@modelcontextprotocol/sdk/types.js";
 import axios, { AxiosError } from "axios";
 import {
-  DeployResponse,
-  ItemResponse,
-  ListDeploysResponse,
-  ListEnvironmentsResponse,
-  ListItemsResponse,
-  ListOccurrencesResponse,
-  ListProjectsResponse,
-  ListUsersResponse,
-  OccurrenceResponse,
-  ProjectResponse,
+  ListEnvironments,
+  ListItems,
+  ListOccurrences,
   RollbarProject,
-  UserResponse,
   RollbarResponse,
   RollbarItem,
   RollbarOccurrence,
+  RollbarUser,
+  RollbarDeploy,
 } from "./types.js";
 
 // Check for project access token and account access token
@@ -75,7 +69,7 @@ const findProjectIdByName = async (projectName: string): Promise<number | undefi
   }
 
   try {
-    const response = await accountClient.get<ListProjectsResponse>("/projects");
+    const response = await accountClient.get<RollbarResponse<RollbarProject[]>>("/projects");
     const projects = response.data.result;
 
     const project = projects.find((p: RollbarProject) => p.name === projectName);
@@ -360,7 +354,7 @@ export const createServer = () => {
           if (level) params.level = level;
           if (environment) params.environment = environment;
 
-          const response = await projectClient.get<ListItemsResponse>("/items", { params });
+          const response = await projectClient.get<RollbarResponse<ListItems>>("/items", { params });
           return {
             content: [
               {
@@ -378,7 +372,9 @@ export const createServer = () => {
           }
 
           const { id } = args as { id: number };
-          const response = await projectClient.get<ItemResponse>(`/item/${id}`);
+          const response = await projectClient.get<RollbarResponse<RollbarItem>>(`/item/${id}`);
+          console.log(response.data.result.counter);
+
           return {
             content: [
               {
@@ -396,7 +392,7 @@ export const createServer = () => {
           }
 
           const { uuid } = args as { uuid: string };
-          const response = await projectClient.get<ItemResponse>(`/item/${uuid}`);
+          const response = await projectClient.get<RollbarResponse<RollbarItem>>(`/item/${uuid}`);
           return {
             content: [
               {
@@ -414,7 +410,7 @@ export const createServer = () => {
           }
 
           const { counter } = args as { counter: number };
-          const response = await projectClient.get<ItemResponse>(`/item_by_counter/${counter}`);
+          const response = await projectClient.get<RollbarResponse<RollbarItem>>(`/item_by_counter/${counter}`);
           return {
             content: [
               {
@@ -448,7 +444,7 @@ export const createServer = () => {
             endpoint = `/item/${itemId}/instances`;
           }
 
-          const response = await projectClient.get<ListOccurrencesResponse>(endpoint, { params });
+          const response = await projectClient.get<RollbarResponse<ListOccurrences>>(endpoint, { params });
           return {
             content: [
               {
@@ -466,7 +462,7 @@ export const createServer = () => {
           }
 
           const { id } = args as { id: string };
-          const response = await projectClient.get<OccurrenceResponse>(`/instance/${id}`);
+          const response = await projectClient.get<RollbarResponse<RollbarOccurrence>>(`/instance/${id}`);
           return {
             content: [
               {
@@ -483,7 +479,7 @@ export const createServer = () => {
             throw new Error("ROLLBAR_ACCOUNT_TOKEN is not set, cannot use this API");
           }
 
-          const response = await accountClient.get<ListProjectsResponse>("/projects");
+          const response = await accountClient.get<RollbarResponse<RollbarProject[]>>("/projects");
           return {
             content: [
               {
@@ -509,7 +505,7 @@ export const createServer = () => {
             throw new Error("Project ID is required but not provided in request or environment variables");
           }
 
-          const response = await accountClient.get<ProjectResponse>(`/project/${effectiveProjectId}`);
+          const response = await accountClient.get<RollbarResponse<RollbarProject>>(`/project/${effectiveProjectId}`);
           return {
             content: [
               {
@@ -535,7 +531,7 @@ export const createServer = () => {
             throw new Error("Project ID is required but not provided in request or environment variables");
           }
 
-          const response = await projectClient.get<ListEnvironmentsResponse>(
+          const response = await projectClient.get<RollbarResponse<ListEnvironments>>(
             `/project/${effectiveProjectId}/environments`,
           );
           return {
@@ -554,7 +550,7 @@ export const createServer = () => {
             throw new Error("ROLLBAR_ACCOUNT_TOKEN is not set, cannot use this API");
           }
 
-          const response = await accountClient.get<ListUsersResponse>("/users");
+          const response = await accountClient.get<RollbarResponse<RollbarUser[]>>("/users");
           return {
             content: [
               {
@@ -572,7 +568,7 @@ export const createServer = () => {
           }
 
           const { id } = args as { id: number };
-          const response = await accountClient.get<UserResponse>(`/user/${id}`);
+          const response = await accountClient.get<RollbarResponse<RollbarUser>>(`/user/${id}`);
           return {
             content: [
               {
@@ -611,7 +607,7 @@ export const createServer = () => {
           const params: Record<string, string | number> = { page, limit };
           if (environment) params.environment = environment;
 
-          const response = await projectClient.get<ListDeploysResponse>(`/project/${effectiveProjectId}/deploys`, {
+          const response = await projectClient.get<RollbarResponse<RollbarDeploy[]>>(`/project/${effectiveProjectId}/deploys`, {
             params,
           });
           return {
@@ -631,7 +627,7 @@ export const createServer = () => {
           }
 
           const { deployId } = args as { deployId: number };
-          const response = await projectClient.get<DeployResponse>(`/deploy/${deployId}`);
+          const response = await projectClient.get<RollbarResponse<RollbarDeploy>>(`/deploy/${deployId}`);
           return {
             content: [
               {
